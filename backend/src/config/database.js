@@ -83,41 +83,44 @@ const initializeDatabase = async () => {
     
     if (!adminCheck.data) {
       const hashedPassword = await bcrypt.hash('Admin123!', 10);
-      await insert(`
-        INSERT INTO users (name, email, password, address, role)
-        VALUES (?, ?, ?, ?, ?)
-      `, ['System Administrator User', 'admin@system.com', hashedPassword, '123 Admin Street, Admin City', 'admin']);
+      await insert(`INSERT INTO users (name, email, password, address, role) VALUES (?, ?, ?, ?, ?)`, 
+        ['System Administrator User', 'admin@system.com', hashedPassword, '123 Admin Street, Admin City', 'admin']);
       
-      console.log('✅ Admin user created successfully');
+      // Create dummy data
+      const ownerPassword = await bcrypt.hash('Admin123!', 10);
+      const userPassword = await bcrypt.hash('User123!', 10);
+      
+      const owner1 = await insert(`INSERT INTO users (name, email, password, address, role) VALUES (?, ?, ?, ?, ?)`, 
+        ['Tech Store Owner John Smith Account', 'john@techstore.com', ownerPassword, '123 Silicon Valley Blvd, San Francisco, CA', 'store_owner']);
+      
+      const owner2 = await insert(`INSERT INTO users (name, email, password, address, role) VALUES (?, ?, ?, ?, ?)`, 
+        ['Fashion Boutique Owner Sarah Johnson', 'sarah@fashionboutique.com', ownerPassword, '456 Fashion District, New York, NY', 'store_owner']);
+      
+      const user1 = await insert(`INSERT INTO users (name, email, password, address, role) VALUES (?, ?, ?, ?, ?)`, 
+        ['Customer Alice Johnson Account', 'alice@customer.com', userPassword, '111 Customer Street, Los Angeles, CA', 'normal']);
+      
+      const user2 = await insert(`INSERT INTO users (name, email, password, address, role) VALUES (?, ?, ?, ?, ?)`, 
+        ['Customer Bob Wilson Account User', 'bob@customer.com', userPassword, '222 Buyer Avenue, Chicago, IL', 'normal']);
+      
+      const store1 = await insert(`INSERT INTO stores (name, email, address, owner_id) VALUES (?, ?, ?, ?)`, 
+        ['TechWorld Electronics Superstore', 'contact@techworld.com', '123 Silicon Valley Blvd, San Francisco, CA 94105', owner1.data.id]);
+      
+      const store2 = await insert(`INSERT INTO stores (name, email, address, owner_id) VALUES (?, ?, ?, ?)`, 
+        ['Elegant Fashion Boutique Store', 'info@elegantfashion.com', '456 Fashion District, New York, NY 10001', owner2.data.id]);
+      
+      await insert(`INSERT INTO ratings (user_id, store_id, rating, review) VALUES (?, ?, ?, ?)`, 
+        [user1.data.id, store1.data.id, 5, 'Amazing selection of electronics! Great customer service and competitive prices.']);
+      
+      await insert(`INSERT INTO ratings (user_id, store_id, rating, review) VALUES (?, ?, ?, ?)`, 
+        [user2.data.id, store1.data.id, 4, 'Good store with latest gadgets. Staff is knowledgeable.']);
+      
+      await insert(`INSERT INTO ratings (user_id, store_id, rating, review) VALUES (?, ?, ?, ?)`, 
+        [user1.data.id, store2.data.id, 4, 'Beautiful clothing collection. Trendy styles but prices are high.']);
+      
+      console.log('✅ Created dummy data with stores, users, and reviews');
     }
 
-    const storeCheck = await queryOne('SELECT id FROM stores LIMIT 1');
-    if (!storeCheck.data) {
-      const owner1Password = await bcrypt.hash('Admin123!', 10);
-      const owner2Password = await bcrypt.hash('Admin123!', 10);
-      
-      const owner1 = await insert(`
-        INSERT INTO users (name, email, password, address, role)
-        VALUES (?, ?, ?, ?, ?)
-      `, ['Sample Store Owner One Account', 'owner1@store.com', owner1Password, '456 Store Street, Store City', 'store_owner']);
-      
-      const owner2 = await insert(`
-        INSERT INTO users (name, email, password, address, role)
-        VALUES (?, ?, ?, ?, ?)
-      `, ['Sample Store Owner Two Account', 'owner2@store.com', owner2Password, '789 Shop Avenue, Shop Town', 'store_owner']);
-      
-      await insert(`
-        INSERT INTO stores (name, email, address, owner_id)
-        VALUES (?, ?, ?, ?)
-      `, ['Amazing Electronics Store Chain', 'contact@electronics.com', '123 Tech Street, Silicon Valley', owner1.data.id]);
-      
-      await insert(`
-        INSERT INTO stores (name, email, address, owner_id)
-        VALUES (?, ?, ?, ?)
-      `, ['Fresh Grocery Market Place Store', 'info@freshmarket.com', '456 Food Avenue, Downtown', owner2.data.id]);
-      
-      console.log('✅ Sample stores created successfully');
-    }
+
 
     console.log('✅ Database initialized successfully');
   } catch (error) {
